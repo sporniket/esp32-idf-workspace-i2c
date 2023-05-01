@@ -306,6 +306,21 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
+# WORKSPACE IIC
+#
+CONFIG_LABEL_TITLE="The mighty project"
+
+#
+# Control panel mapping
+#
+CONFIG_PIN_STATUS_MAIN=22
+CONFIG_PIN_BUTTON_MENU=15
+CONFIG_PIN_BUTTON_UP=17
+CONFIG_PIN_BUTTON_DOWN=16
+# end of Control panel mapping
+# end of WORKSPACE IIC
+
+#
 # Compiler options
 #
 CONFIG_COMPILER_OPTIMIZATION_DEFAULT=y
