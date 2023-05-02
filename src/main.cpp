@@ -15,8 +15,10 @@
 // You should have received a copy of the GNU General Public License along
 // with 'ESP32/IDF workspace for IIC'. If not, see <https://www.gnu.org/licenses/>. 
 
+#include "esp_log.h"
 #include "driver/gpio.h"
 #include "driver/gptimer.h"
+#include "driver/i2c.h"
 
 // sdk config
 #include "sdkconfig.h"
@@ -32,6 +34,8 @@
 // GPIO pins affectation from configuration
 #define PIN_BUTTON_MENU gpio_num_t(CONFIG_PIN_BUTTON_MENU)
 #define PIN_STATUS_MAIN gpio_num_t(CONFIG_PIN_STATUS_MAIN)
+
+static const char *TAG_MAIN = "main";
 
 /**
  * Main file for running the BLE samples.
@@ -102,6 +106,50 @@ public:
           led->setFeedbackSequenceAndLoop(BLINK_THRICE);
         } else {
           led->setFeedbackSequenceAndLoop(BLINK_ONCE);
+
+          // sample i2c sequence
+          int i2c_master_port = 0;
+
+          // -- sample command
+          uint8_t comm1 = 0x02 ; //reversed bits of 0x40
+          uint8_t comm2 = 0x03 ; //reversed bits of 0xC0
+          uint8_t comm3 = 0xf1 ; //reversed bits of 0x8f
+          bool ack_mode = true ;
+          uint8_t demo1[] = {
+            comm1
+          } ;
+          uint8_t demo2[] = {
+            comm2,0xfc,0xfc,0xfc,0xfc
+          } ;
+          uint8_t demo3[] = {
+            comm3
+          } ;
+          i2c_cmd_handle_t cmd ;
+          cmd = i2c_cmd_link_create();
+          i2c_master_start(cmd) ;
+          i2c_master_write(cmd,demo1,1,ack_mode);
+          i2c_master_stop(cmd);
+          ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
+          i2c_cmd_link_delete(cmd);
+          ESP_LOGI(TAG_MAIN, "done i2c command 1");
+
+          cmd = i2c_cmd_link_create();
+          i2c_master_start(cmd) ;
+          i2c_master_write(cmd,demo2,7,ack_mode);
+          i2c_master_stop(cmd);
+          ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
+          i2c_cmd_link_delete(cmd);
+          ESP_LOGI(TAG_MAIN, "done i2c command 2");
+
+          cmd = i2c_cmd_link_create();
+          i2c_master_start(cmd) ;
+          i2c_master_write(cmd,demo3,1,ack_mode);
+          i2c_master_stop(cmd);
+          ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
+          i2c_cmd_link_delete(cmd);
+          ESP_LOGI(TAG_MAIN, "done i2c command 3");
+
+
         }
         break;
       }
@@ -143,5 +191,47 @@ void app_main(void) {
                       ->withLed(mainLed)    //
                       ->withButton(button);
   buttonWatcher->start();
+
+  // -- i2c
+  int i2c_master_port = 0;
+  i2c_config_t conf = {
+    .mode = I2C_MODE_MASTER,
+    .sda_io_num = CONFIG_PIN_IIC_1_SDA,         // select SDA GPIO specific to your project
+    .scl_io_num = CONFIG_PIN_IIC_1_SCL,         // select SCL GPIO specific to your project
+    .sda_pullup_en = GPIO_PULLUP_DISABLE,
+    .scl_pullup_en = GPIO_PULLUP_DISABLE,
+    .master = {.clk_speed = 420000/*CONFIG_IIC_1_CLK_FREQ_HZ*/},  // select frequency specific to your project
+    .clk_flags = 0,                          // optional; you can use I2C_SCLK_SRC_FLAG_* flags to choose i2c source clock here
+  };
+
+  i2c_trans_mode_t txmode, rxmode ;
+  i2c_get_data_mode(i2c_master_port, &txmode, &rxmode) ;
+  if (I2C_DATA_MODE_MSB_FIRST == txmode) {
+    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_MSB_FIRST");
+  } else if (I2C_DATA_MODE_LSB_FIRST == txmode) {
+    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_LSB_FIRST");
+  } else if (I2C_DATA_MODE_MAX == txmode) {
+    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_MAX");
+  } else {
+    ESP_LOGI(TAG_MAIN, "tx mode has another value");
+  }
+
+  ESP_ERROR_CHECK(i2c_set_data_mode(i2c_master_port, I2C_DATA_MODE_MSB_FIRST, I2C_DATA_MODE_MSB_FIRST));
+
+  i2c_get_data_mode(i2c_master_port, &txmode, &rxmode) ;
+  if (I2C_DATA_MODE_MSB_FIRST == txmode) {
+    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_MSB_FIRST");
+  } else if (I2C_DATA_MODE_LSB_FIRST == txmode) {
+    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_LSB_FIRST");
+  } else if (I2C_DATA_MODE_MAX == txmode) {
+    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_MAX");
+  } else {
+    ESP_LOGI(TAG_MAIN, "tx mode has another value");
+  }
+
+  i2c_param_config(i2c_master_port, &conf);
+
+  ESP_ERROR_CHECK(i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0));
+
 
 } // app_main
