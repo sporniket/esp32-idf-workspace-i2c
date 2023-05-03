@@ -44,6 +44,113 @@ extern "C" {
 void app_main(void);
 }
 
+//=====================================================================
+// Demo : ascii
+uint8_t demo_pool[] = {
+  /* ASCII  32 spa */ 0x00,
+  /* ASCII  33 !   */ 0x6b,
+  /* ASCII  34 "   */ 0x22,
+  /* ASCII  35 #   */ 0x00,
+  /* ASCII  36 $   */ 0x00,
+  /* ASCII  37 %   */ 0x00,
+  /* ASCII  38 &   */ 0x00,
+  /* ASCII  39 '   */ 0x02,
+  /* ASCII  40 (   */ 0x39,
+  /* ASCII  41 )   */ 0x0f,
+  /* ASCII  42 *   */ 0x00,
+  /* ASCII  43 +   */ 0x00,
+  /* ASCII  44 ,   */ 0x0c,
+  /* ASCII  45 -   */ 0x40,
+  /* ASCII  46 .   */ 0x00,
+  /* ASCII  47 /   */ 0x52,
+  /* ASCII  48 0   */ 0x3f,
+  /* ASCII  49 1   */ 0x06,
+  /* ASCII  50 2   */ 0x5b,
+  /* ASCII  51 3   */ 0x4f,
+  /* ASCII  52 4   */ 0x66,
+  /* ASCII  53 5   */ 0x6d,
+  /* ASCII  54 6   */ 0x7d,
+  /* ASCII  55 7   */ 0x07,
+  /* ASCII  56 8   */ 0x7f,
+  /* ASCII  57 9   */ 0x6f,
+  /* ASCII  58 :   */ 0x48,
+  /* ASCII  59 ;   */ 0x4c,
+  /* ASCII  60 <   */ 0x61,
+  /* ASCII  61 =   */ 0x48,
+  /* ASCII  62 >   */ 0x43,
+  /* ASCII  63 ?   */ 0x4b,
+  /* ASCII  64 @   */ 0x7b,
+  /* ASCII  65 A   */ 0x77,
+  /* ASCII  66 B   */ 0x7c,
+  /* ASCII  67 C   */ 0x39,
+  /* ASCII  68 D   */ 0x5e,
+  /* ASCII  69 E   */ 0x79,
+  /* ASCII  70 F   */ 0x71,
+  /* ASCII  71 G   */ 0x3d,
+  /* ASCII  72 H   */ 0x74,
+  /* ASCII  73 I   */ 0x30,
+  /* ASCII  74 J   */ 0x1e,
+  /* ASCII  75 K   */ 0x76,
+  /* ASCII  76 L   */ 0x38,
+  /* ASCII  77 M   */ 0x37,
+  /* ASCII  78 N   */ 0x54,
+  /* ASCII  79 O   */ 0x5c,
+  /* ASCII  80 P   */ 0x73,
+  /* ASCII  81 Q   */ 0x67,
+  /* ASCII  82 R   */ 0x50,
+  /* ASCII  83 S   */ 0x6d,
+  /* ASCII  84 T   */ 0x78,
+  /* ASCII  85 U   */ 0x1c,
+  /* ASCII  86 V   */ 0x1c,
+  /* ASCII  87 W   */ 0x3e,
+  /* ASCII  88 X   */ 0x76,
+  /* ASCII  89 Y   */ 0x72,
+  /* ASCII  90 Z   */ 0x5b,
+  /* ASCII  91 [   */ 0x39,
+  /* ASCII  92 \   */ 0x64,
+  /* ASCII  93 ]   */ 0x0f,
+  /* ASCII  94 ^   */ 0x23,
+  /* ASCII  95 _   */ 0x08,
+  /* ASCII  96 `   */ 0x20,
+  /* ASCII  97 a   */ 0x77,
+  /* ASCII  98 b   */ 0x7c,
+  /* ASCII  99 c   */ 0x39,
+  /* ASCII 100 d   */ 0x5e,
+  /* ASCII 101 e   */ 0x79,
+  /* ASCII 102 f   */ 0x71,
+  /* ASCII 103 g   */ 0x3d,
+  /* ASCII 104 h   */ 0x74,
+  /* ASCII 105 i   */ 0x30,
+  /* ASCII 106 j   */ 0x1e,
+  /* ASCII 107 k   */ 0x76,
+  /* ASCII 108 l   */ 0x38,
+  /* ASCII 109 m   */ 0x37,
+  /* ASCII 110 n   */ 0x54,
+  /* ASCII 111 o   */ 0x5c,
+  /* ASCII 112 p   */ 0x73,
+  /* ASCII 113 q   */ 0x67,
+  /* ASCII 114 r   */ 0x50,
+  /* ASCII 115 s   */ 0x6d,
+  /* ASCII 116 t   */ 0x78,
+  /* ASCII 117 u   */ 0x1c,
+  /* ASCII 118 v   */ 0x1c,
+  /* ASCII 119 w   */ 0x3e,
+  /* ASCII 120 x   */ 0x76,
+  /* ASCII 121 y   */ 0x72,
+  /* ASCII 122 z   */ 0x5b,
+  /* ASCII 123 {   */ 0x46,
+  /* ASCII 124 |   */ 0x30,
+  /* ASCII 125 }   */ 0x70,
+  /* ASCII 126 ~   */ 0x00,
+  /* ASCII 127 DEL */ 0x00
+} ;
+uint8_t demo_length = 96 ;
+uint8_t demo_cursor = 0 ;
+bool demo_is_ready = false ;
+
+// Demo : ascii
+//=====================================================================
+
 // Utils -- i2c data mode -- log tx data mode
 void logTxDataMode(i2c_trans_mode_t mode) {
   if (I2C_DATA_MODE_MSB_FIRST == mode) {
@@ -74,6 +181,64 @@ void trySetDataMode(int i2c_port) {
   checkTxDataMode(i2c_port);
 }
 
+// Sample task : display updater
+class DisplayUpdaterTask : public Task {
+private:
+
+public:
+  void run(void *data) {
+    const TickType_t SLEEP_TIME = 333 / portTICK_PERIOD_MS; // 3.33 Hz
+    while (true) {
+      if (demo_is_ready) {
+        // sample i2c sequence
+        int i2c_master_port = 0;
+
+        // -- sample command
+        uint8_t comm1 = 0x40; //Command : Set a batch of digits
+        uint8_t comm2 = 0xc0; //Address : digit #0
+        uint8_t comm3 = 0x8b; //Brightness : ON + level 3/7
+        bool ack_mode = true ;
+        uint8_t demo1[] = {
+          comm1
+        } ;
+        uint8_t demo2[] = {
+          // LSB : 4 times 'b' with dot ; MSB : 4 times '0' without dot
+          comm2,demo_pool[demo_cursor],demo_pool[(demo_cursor+1)%demo_length],demo_pool[(demo_cursor+2)%demo_length],demo_pool[(demo_cursor+3)%demo_length] 
+        } ;
+        uint8_t demo3[] = {
+          comm3
+        } ;
+        i2c_cmd_handle_t cmd ;
+        cmd = i2c_cmd_link_create();
+        i2c_master_start(cmd) ;
+        i2c_master_write(cmd,demo1,1,ack_mode);
+        i2c_master_stop(cmd);
+        ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
+        i2c_cmd_link_delete(cmd);
+        ESP_LOGI(TAG_MAIN, "done i2c command 1");
+
+        cmd = i2c_cmd_link_create();
+        i2c_master_start(cmd) ;
+        i2c_master_write(cmd,demo2,7,ack_mode);
+        i2c_master_stop(cmd);
+        ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
+        i2c_cmd_link_delete(cmd);
+        ESP_LOGI(TAG_MAIN, "done i2c command 2");
+
+        cmd = i2c_cmd_link_create();
+        i2c_master_start(cmd) ;
+        i2c_master_write(cmd,demo3,1,ack_mode);
+        i2c_master_stop(cmd);
+        ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
+        i2c_cmd_link_delete(cmd);
+        ESP_LOGI(TAG_MAIN, "done i2c command 3");
+
+        demo_cursor = (demo_cursor+1)%demo_length ;
+      }
+      vTaskDelay(SLEEP_TIME);
+    }
+  }
+};
 
 // Sample task : led updater
 class LedUpdaterTask : public Task {
@@ -138,50 +303,6 @@ public:
         } else {
           led->setFeedbackSequenceAndLoop(BLINK_ONCE);
 
-          // sample i2c sequence
-          int i2c_master_port = 0;
-
-          // -- sample command
-          uint8_t comm1 = 0x40; //Command : Set a batch of digits
-          uint8_t comm2 = 0xc0; //Address : digit #0
-          uint8_t comm3 = 0x8b; //Brightness : ON + level 3/7
-          bool ack_mode = true ;
-          uint8_t demo1[] = {
-            comm1
-          } ;
-          uint8_t demo2[] = {
-             // LSB : 4 times 'b' with dot ; MSB : 4 times '0' without dot
-            comm2,0xfc,0xfc,0xfc,0xfc 
-          } ;
-          uint8_t demo3[] = {
-            comm3
-          } ;
-          i2c_cmd_handle_t cmd ;
-          cmd = i2c_cmd_link_create();
-          i2c_master_start(cmd) ;
-          i2c_master_write(cmd,demo1,1,ack_mode);
-          i2c_master_stop(cmd);
-          ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
-          i2c_cmd_link_delete(cmd);
-          ESP_LOGI(TAG_MAIN, "done i2c command 1");
-
-          cmd = i2c_cmd_link_create();
-          i2c_master_start(cmd) ;
-          i2c_master_write(cmd,demo2,7,ack_mode);
-          i2c_master_stop(cmd);
-          ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
-          i2c_cmd_link_delete(cmd);
-          ESP_LOGI(TAG_MAIN, "done i2c command 2");
-
-          cmd = i2c_cmd_link_create();
-          i2c_master_start(cmd) ;
-          i2c_master_write(cmd,demo3,1,ack_mode);
-          i2c_master_stop(cmd);
-          ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
-          i2c_cmd_link_delete(cmd);
-          ESP_LOGI(TAG_MAIN, "done i2c command 3");
-
-
         }
         break;
       }
@@ -193,6 +314,7 @@ public:
 GeneralPurposeInputOutput *gpio;
 Task *ledUpdater;
 Task *buttonWatcher;
+Task *displayUpdater;
 InputButton *button;
 FeedbackLed *mainLed;
 
@@ -241,5 +363,10 @@ void app_main(void) {
   trySetDataMode(i2c_master_port) ;
 
   ESP_ERROR_CHECK(i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0));
+
+  demo_is_ready = true ;
+
+  displayUpdater = new DisplayUpdaterTask() ;
+  displayUpdater->start() ;
 
 } // app_main
