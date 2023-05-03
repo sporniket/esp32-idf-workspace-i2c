@@ -44,6 +44,37 @@ extern "C" {
 void app_main(void);
 }
 
+// Utils -- i2c data mode -- log tx data mode
+void logTxDataMode(i2c_trans_mode_t mode) {
+  if (I2C_DATA_MODE_MSB_FIRST == mode) {
+    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_MSB_FIRST");
+  } else if (I2C_DATA_MODE_LSB_FIRST == mode) {
+    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_LSB_FIRST");
+  } else if (I2C_DATA_MODE_MAX == mode) {
+    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_MAX");
+  } else {
+    ESP_LOGI(TAG_MAIN, "tx mode has another value");
+  }
+}
+
+// Utils -- i2c data mode -- log tx data mode
+void checkTxDataMode(int i2c_port) {
+  i2c_trans_mode_t txmode, rxmode ;
+
+  i2c_get_data_mode(i2c_port, &txmode, &rxmode) ;
+  logTxDataMode(txmode) ;
+}
+
+// Utils -- i2c data mode -- set
+void trySetDataMode(int i2c_port) {
+  checkTxDataMode(i2c_port);
+
+  ESP_ERROR_CHECK(i2c_set_data_mode(i2c_port, I2C_DATA_MODE_LSB_FIRST, I2C_DATA_MODE_LSB_FIRST));
+
+  checkTxDataMode(i2c_port);
+}
+
+
 // Sample task : led updater
 class LedUpdaterTask : public Task {
 private:
@@ -111,15 +142,16 @@ public:
           int i2c_master_port = 0;
 
           // -- sample command
-          uint8_t comm1 = 0x02 ; //reversed bits of 0x40
-          uint8_t comm2 = 0x03 ; //reversed bits of 0xC0
-          uint8_t comm3 = 0xf1 ; //reversed bits of 0x8f
+          uint8_t comm1 = 0x40; //Command : Set a batch of digits
+          uint8_t comm2 = 0xc0; //Address : digit #0
+          uint8_t comm3 = 0x8b; //Brightness : ON + level 3/7
           bool ack_mode = true ;
           uint8_t demo1[] = {
             comm1
           } ;
           uint8_t demo2[] = {
-            comm2,0xfc,0xfc,0xfc,0xfc
+             // LSB : 4 times 'b' with dot ; MSB : 4 times '0' without dot
+            comm2,0xfc,0xfc,0xfc,0xfc 
           } ;
           uint8_t demo3[] = {
             comm3
@@ -204,34 +236,10 @@ void app_main(void) {
     .clk_flags = 0,                          // optional; you can use I2C_SCLK_SRC_FLAG_* flags to choose i2c source clock here
   };
 
-  i2c_trans_mode_t txmode, rxmode ;
-  i2c_get_data_mode(i2c_master_port, &txmode, &rxmode) ;
-  if (I2C_DATA_MODE_MSB_FIRST == txmode) {
-    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_MSB_FIRST");
-  } else if (I2C_DATA_MODE_LSB_FIRST == txmode) {
-    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_LSB_FIRST");
-  } else if (I2C_DATA_MODE_MAX == txmode) {
-    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_MAX");
-  } else {
-    ESP_LOGI(TAG_MAIN, "tx mode has another value");
-  }
-
-  ESP_ERROR_CHECK(i2c_set_data_mode(i2c_master_port, I2C_DATA_MODE_MSB_FIRST, I2C_DATA_MODE_MSB_FIRST));
-
-  i2c_get_data_mode(i2c_master_port, &txmode, &rxmode) ;
-  if (I2C_DATA_MODE_MSB_FIRST == txmode) {
-    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_MSB_FIRST");
-  } else if (I2C_DATA_MODE_LSB_FIRST == txmode) {
-    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_LSB_FIRST");
-  } else if (I2C_DATA_MODE_MAX == txmode) {
-    ESP_LOGI(TAG_MAIN, "tx mode = I2C_DATA_MODE_MAX");
-  } else {
-    ESP_LOGI(TAG_MAIN, "tx mode has another value");
-  }
-
   i2c_param_config(i2c_master_port, &conf);
 
-  ESP_ERROR_CHECK(i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0));
+  trySetDataMode(i2c_master_port) ;
 
+  ESP_ERROR_CHECK(i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0));
 
 } // app_main
