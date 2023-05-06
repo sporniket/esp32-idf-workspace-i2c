@@ -15,7 +15,6 @@ using CursorPosition = uint16_t;
 
 /** @brief What the class is for.
  */
-// TODO scroll
 // TODO query interface to get the current font, style and color
 // TODO query interface to get the cursor position (row, column) relative to
 // origin
@@ -90,6 +89,15 @@ private:
     return (row < maxRowIndexExcluded) ? row : lastRowIndex;
   }
 
+  ColumnIndex void columnIndexMovedBy(ColumnIndex currentValue,
+                                      ColumnIndex move) {
+    return (currentValue + move) % maxColumnIndexExcluded;
+  }
+
+  RowIndex void rowIndexMovedBy(ColumnIndex currentValue, ColumnIndex move) {
+    return (currentValue + move) % maxRowIndexExcluded;
+  }
+
 public:
   virtual ~GridOfChars();
   GridOfChars(RowIndex rows, ColumnIndex columns, TypeOfGlyph defaultGlyph,
@@ -107,6 +115,8 @@ public:
     style = eraseGlyph.style;
     clear();
   }
+
+  // ======== Mutation API, written to give a fluent syntax. ========
   GridOfChars *clear() {
     clearArea(0, 0, maxColumnIndexExcluded, maxRowIndexExcluded);
     return this;
@@ -171,9 +181,26 @@ public:
     return this;
   }
 
-  // HERE
-  GridOfChars *scrollBy(ColumnIndex deltaCols, RowIndex deltaRows);
-  GridOfChars *scrollTo(ColumnIndex deltaCols, RowIndex deltaRows);
+  /** @brief Move the origin of the grid by a relative move of the origin.
+   * @param moveRow move of the row coordinate.
+   * @param moveColumn move of the column coordinate.
+   * @return this.
+   */
+  GridOfChars *scrollBy(RowIndex moveRow, ColumnIndex moveColumn) {
+    baseRow = rowIndexMovedBy(baseRow, moveRow);
+    baseColumn = columnIndexMovedBy(baseColumn, moveColumn);
+    baseCursor = cursorPositionFrom(baseRow, baseColumn);
+  }
+  /** @brief Set the origin of the grid.
+   * @param absRow the new row coordinate of the origin.
+   * @param absColumn the new column coordinate of the origin.
+   * @return this.
+   */
+  GridOfChars *scrollTo(RowIndex absRow, ColumnIndex absColumn) {
+    baseRow = rowIndexClippedFrom(absRow);
+    baseColumn = columnIndexClippedFrom(absColumn);
+    baseCursor = cursorPositionFrom(baseRow, baseColumn);
+  }
 
   /** @brief Change the current color.
    * @param color the new color value.
