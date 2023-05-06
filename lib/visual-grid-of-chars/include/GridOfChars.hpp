@@ -17,8 +17,9 @@ using CursorPosition = uint16_t;
  */
 // TODO scroll
 // TODO query interface to get the current font, style and color
-// TODO query interface to get the cursor position (row, column) relative to origin
-// TODO query interface to get the cursor origin (row, column) 
+// TODO query interface to get the cursor position (row, column) relative to
+// origin
+// TODO query interface to get the cursor origin (row, column)
 // TODO query interface to get the glyph at a given position
 // TODO query interface to get the grid content (const pointer to const values)
 template <typename TypeOfChar, typename TypeOfColor> class GridOfChars {
@@ -174,15 +175,28 @@ public:
   GridOfChars *scrollBy(ColumnIndex deltaCols, RowIndex deltaRows);
   GridOfChars *scrollTo(ColumnIndex deltaCols, RowIndex deltaRows);
 
-  // 
+  /** @brief Change the current color.
+   * @param color the new color value.
+   * @return this.
+   */
   GridOfChars *withColor(TypeOfColor color) {
     this->color = color;
     return this;
   }
+
+  /** @brief Change the current style.
+   * @param style the new style value.
+   * @return this.
+   */
   GridOfChars *withStyle(StyleFlags style) {
     this->style = style;
     return this;
   }
+
+  /** @brief Change the current style.
+   * @param font the new font value.
+   * @return this.
+   */
   GridOfChars *withFont(FontIndex font) {
     this->font = font;
     return this;
