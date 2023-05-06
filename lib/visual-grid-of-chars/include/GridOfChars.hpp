@@ -73,10 +73,10 @@ private:
   CursorPosition baseCursor;
 
   void updateCursorPosition() {
-    cursor = cursorPositionFrom(cursorRow, cursorColumn);
+    cursor = cursorPositionFrom(cursorColumn, cursorRow);
   }
 
-  CursorPosition void cursorPositionFrom(RowIndex row, ColumnIndex column) {
+  CursorPosition void cursorPositionFrom(ColumnIndex column, RowIndex row) {
     return (CursorPosition)row * (CursorPosition)maxColumnIndexExcluded +
            (CursorPosition)column;
   }
@@ -182,7 +182,7 @@ public:
 
     // compute starting position and offsets
     CursorPosition clrCursor =
-        baseCursor + cursorPositionFrom(fromRow, fromColumn);
+        baseCursor + cursorPositionFrom(fromColumn, fromRow);
     ColumnIndex countClrColumns = toColumn - fromColumn;
     CursorPosition offsetNextRow =
         (CursorPosition)(maxColumnIndexExcluded - countClrColumns);
@@ -217,7 +217,7 @@ public:
   GridOfChars *scrollBy(RowIndex moveRow, ColumnIndex moveColumn) {
     baseRow = rowIndexMovedBy(baseRow, moveRow);
     baseColumn = columnIndexMovedBy(baseColumn, moveColumn);
-    baseCursor = cursorPositionFrom(baseRow, baseColumn);
+    baseCursor = cursorPositionFrom(baseColumn, baseRow);
   }
   /** @brief Set the origin of the grid.
    * @param absRow the new row coordinate of the origin.
@@ -227,7 +227,7 @@ public:
   GridOfChars *scrollTo(RowIndex absRow, ColumnIndex absColumn) {
     baseRow = rowIndexClippedFrom(absRow);
     baseColumn = columnIndexClippedFrom(absColumn);
-    baseCursor = cursorPositionFrom(baseRow, baseColumn);
+    baseCursor = cursorPositionFrom(baseColumn, baseRow);
   }
 
   /** @brief Change the current color.
