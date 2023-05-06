@@ -100,7 +100,7 @@ private:
 
 public:
   virtual ~GridOfChars();
-  GridOfChars(RowIndex rows, ColumnIndex columns, TypeOfGlyph defaultGlyph,
+  GridOfChars(ColumnIndex columns, RowIndex rows, TypeOfGlyph defaultGlyph,
               TypeOfGlyph *buffer)
       : maxRowIndexExcluded(rows), maxColumnIndexExcluded(columns),
         maxCursorExcluded(rows * columns), //
@@ -117,26 +117,54 @@ public:
   }
 
   // ======== Mutation API, written to give a fluent syntax. ========
+  /** @brief Erase the whole grid.
+   * @return this.
+   */
   GridOfChars *clear() {
     clearArea(0, 0, maxColumnIndexExcluded, maxRowIndexExcluded);
     return this;
   }
+  /** @brief Erase the given row, relative to the origin.
+   * @param r The row to erase.
+   * @return this.
+   */
   GridOfChars *clearRow(RowIndex r) {
     clearArea(0, r, maxColumnIndexExcluded, r + 1);
     return this;
   }
+  /** @brief Erase the given group of rows, relative to the origin.
+   * @param fromIncluded The first row to erase.
+   * @param toExcluded The row before which the erase will stop.
+   * @return this.
+   */
   GridOfChars *clearRows(RowIndex fromIncluded, RowIndex toExcluded) {
     clearArea(0, fromIncluded, maxColumnIndexExcluded, toExcluded);
     return this;
   }
+  /** @brief Erase the given column, relative to the origin.
+   * @param c The column to erase.
+   * @return this.
+   */
   GridOfChars *clearColumn(ColumnIndex c) {
     clearArea(c, 0, c + 1, maxRowIndexExcluded);
     return this;
   }
+  /** @brief Erase the given group of columns, relative to the origin.
+   * @param fromIncluded The first column to erase.
+   * @param toExcluded The column before which the erase will stop.
+   * @return this.
+   */
   GridOfChars *clearColumn(ColumnIndex fromIncluded, ColumnIndex toExcluded) {
     clearArea(fromIncluded, 0, toExcluded, maxRowIndexExcluded);
     return this;
   }
+  /** @brief Erase the given area, relative to the origin.
+   * @param fromColumnIncluded The first column of the area to erase
+   * @param fromRowIncluded The first row of the area to erase
+   * @param toColumnExcluded The area to erase stops before this column
+   * @param toRowExcluded The area to erase stops before this row
+   * @return this.
+   */
   GridOfChars *clearArea(ColumnIndex fromColumnIncluded,
                          RowIndex fromRowIncluded, ColumnIndex toColumnExcluded,
                          RowIndex toRowExcluded) {
