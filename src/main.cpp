@@ -29,6 +29,8 @@
 #include "GeneralPurposeInputOutput.hpp"
 #include "InputButton.hpp"
 #include "Task.h"
+// -- WIP includes
+#include "MessageBuilderForTm1637.hpp"
 
 //====================================================================
 // GPIO pins affectation from configuration
@@ -184,34 +186,48 @@ void trySetDataMode(int i2c_port) {
 // Sample task : display updater
 class DisplayUpdaterTask : public Task {
 private:
+  uint8_t * const buffer = (uint8_t *)malloc(32);
+  MessageBuilderForTm1637 messageBuilder = MessageBuilderForTm1637();
 
 public:
+  virtual ~DisplayUpdaterTask() {
+    if (nullptr != buffer) {
+      free(buffer);
+    }
+  }
   void run(void *data) {
     const TickType_t SLEEP_TIME = 333 / portTICK_PERIOD_MS; // 3.33 Hz
+    //prepare constant message
+    uint8_t *const command = buffer ;
+    messageBuilder.buildMessageForCommandWriteToDisplay(command) ;
+    uint8_t *const commandData = command + 1;
+    uint8_t *const displayControl = command + command[0] ;
+    messageBuilder.buildMessageForControlBrightness(displayControl, Tm1637OpcodeParts::DISPLAY_AND_CONTROL_BRIGHTNESS_7) ;
+    uint8_t *const displayControlData = displayControl + 1;
+    uint8_t *const addressAndData = displayControl + displayControl[0] ;
+    uint8_t *const addressAndDataData = addressAndData + 1 ;
+    uint8_t displayData[4] ;
+
+    //i2c port to use
+    int i2c_master_port = 0;
+    bool ack_mode = true ;
+
     while (true) {
       if (demo_is_ready) {
         // sample i2c sequence
-        int i2c_master_port = 0;
 
-        // -- sample command
-        uint8_t comm1 = 0x40; //Command : Set a batch of digits
-        uint8_t comm2 = 0xc0; //Address : digit #0
-        uint8_t comm3 = 0x8b; //Brightness : ON + level 3/7
-        bool ack_mode = true ;
-        uint8_t demo1[] = {
-          comm1
-        } ;
-        uint8_t demo2[] = {
-          // LSB : 4 times 'b' with dot ; MSB : 4 times '0' without dot
-          comm2,demo_pool[demo_cursor],demo_pool[(demo_cursor+1)%demo_length],demo_pool[(demo_cursor+2)%demo_length],demo_pool[(demo_cursor+3)%demo_length] 
-        } ;
-        uint8_t demo3[] = {
-          comm3
-        } ;
+        // rework here
+        displayData[0] = demo_pool[demo_cursor];
+        displayData[1] = demo_pool[(demo_cursor+1)%demo_length];
+        displayData[2] = demo_pool[(demo_cursor+2)%demo_length];
+        displayData[3] = demo_pool[(demo_cursor+3)%demo_length];
+        messageBuilder.buildMessageForAddressAndData(addressAndData, displayData, 4);
+
+        // -- sequence of commands
         i2c_cmd_handle_t cmd ;
         cmd = i2c_cmd_link_create();
         i2c_master_start(cmd) ;
-        i2c_master_write(cmd,demo1,1,ack_mode);
+        i2c_master_write(cmd,commandData,command[0],ack_mode);
         i2c_master_stop(cmd);
         ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
         i2c_cmd_link_delete(cmd);
@@ -219,7 +235,7 @@ public:
 
         cmd = i2c_cmd_link_create();
         i2c_master_start(cmd) ;
-        i2c_master_write(cmd,demo2,7,ack_mode);
+        i2c_master_write(cmd,addressAndDataData,addressAndData[0],ack_mode);
         i2c_master_stop(cmd);
         ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
         i2c_cmd_link_delete(cmd);
@@ -227,7 +243,7 @@ public:
 
         cmd = i2c_cmd_link_create();
         i2c_master_start(cmd) ;
-        i2c_master_write(cmd,demo3,1,ack_mode);
+        i2c_master_write(cmd,displayControlData,displayControl[0],ack_mode);
         i2c_master_stop(cmd);
         ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
         i2c_cmd_link_delete(cmd);
