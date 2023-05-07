@@ -9,6 +9,25 @@
 // project includes
 
 // write code here
+#include "SevenSegmentsTypes.hpp"
+
+/** @brief type for storing the keyscan value. */
+using Tm1637Keyscan = uint8_t;
+
+const uint8_t TM1637_MAX_DIGITS = 6;
+const SevenSegmentsBrightness TM1637_MAX_BRIGHTNESS = 7;
+
+/** @brief Registers of the */
+struct Tm1637Registers : SevenSegmentsRegisters {
+  /** @brief store the keyscan read from the controller. */
+  Tm1637Keyscan keyscan = 0;
+};
+
+/** @brief Parts to build full opcodes.
+ *
+ * One should use one `COMMAND_SETTING_xxx` value, and add parts of the
+ * respective command.
+ */
 enum Tm1637OpcodeParts {
   // Command parts
   COMMAND_SETTING_DATA = 0x40,
@@ -23,7 +42,7 @@ enum Tm1637OpcodeParts {
   DATA_ADDRESS_AUTOMATIC = 0x0,
   DATA_ADDRESS_FIXED = 0x4,
   // -- skip test mode, always normal
-  
+
   // display and control command parts
   // -- brightness
   DISPLAY_AND_CONTROL_BRIGHTNESS_0 = 0x0,
@@ -39,7 +58,8 @@ enum Tm1637OpcodeParts {
   DISPLAY_AND_CONTROL_OFF = 0x0,
   DISPLAY_AND_CONTROL_ON = 0x8,
 
-  // address
+  // Address command parts
+  // -- display registers
   ADDRESS_DISPLAY_0 = 0x0,
   ADDRESS_DISPLAY_1 = 0x1,
   ADDRESS_DISPLAY_2 = 0x2,

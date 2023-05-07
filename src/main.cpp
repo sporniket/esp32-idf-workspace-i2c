@@ -31,6 +31,7 @@
 #include "Task.h"
 // -- WIP includes
 #include "MessageBuilderForTm1637.hpp"
+#include "SevenSegmentsTypes.hpp"
 
 //====================================================================
 // GPIO pins affectation from configuration
@@ -149,6 +150,7 @@ uint8_t demo_pool[] = {
 uint8_t demo_length = 96 ;
 uint8_t demo_cursor = 0 ;
 bool demo_is_ready = false ;
+SevenSegmentsRegisters displayRegisters ;
 
 // Demo : ascii
 //=====================================================================
@@ -201,12 +203,12 @@ public:
     uint8_t *const command = buffer ;
     messageBuilder.buildMessageForCommandWriteToDisplay(command) ;
     uint8_t *const commandData = command + 1;
-    uint8_t *const displayControl = command + command[0] ;
+    uint8_t *const displayControl = commandData + command[0] ;
     messageBuilder.buildMessageForControlBrightness(displayControl, Tm1637OpcodeParts::DISPLAY_AND_CONTROL_BRIGHTNESS_7) ;
     uint8_t *const displayControlData = displayControl + 1;
-    uint8_t *const addressAndData = displayControl + displayControl[0] ;
+    uint8_t *const addressAndData = displayControlData + displayControl[0] ;
     uint8_t *const addressAndDataData = addressAndData + 1 ;
-    uint8_t displayData[4] ;
+    //uint8_t displayData[4] ;
 
     //i2c port to use
     int i2c_master_port = 0;
@@ -217,11 +219,11 @@ public:
         // sample i2c sequence
 
         // rework here
-        displayData[0] = demo_pool[demo_cursor];
-        displayData[1] = demo_pool[(demo_cursor+1)%demo_length];
-        displayData[2] = demo_pool[(demo_cursor+2)%demo_length];
-        displayData[3] = demo_pool[(demo_cursor+3)%demo_length];
-        messageBuilder.buildMessageForAddressAndData(addressAndData, displayData, 4);
+        displayRegisters.data.digits[0] = demo_pool[demo_cursor];
+        displayRegisters.data.digits[1] = demo_pool[(demo_cursor+1)%demo_length];
+        displayRegisters.data.digits[2] = demo_pool[(demo_cursor+2)%demo_length];
+        displayRegisters.data.digits[3] = demo_pool[(demo_cursor+3)%demo_length];
+        messageBuilder.buildMessageForAddressAndData(addressAndData, displayRegisters.data.digits, displayRegisters.data.size);
 
         // -- sequence of commands
         i2c_cmd_handle_t cmd ;
@@ -381,6 +383,10 @@ void app_main(void) {
   ESP_ERROR_CHECK(i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0));
 
   demo_is_ready = true ;
+
+  displayRegisters.control.switchedOn = true ;
+  displayRegisters.control.brightness = 7;
+  displayRegisters.data.size = 4 ;
 
   displayUpdater = new DisplayUpdaterTask() ;
   displayUpdater->start() ;
