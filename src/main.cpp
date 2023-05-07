@@ -370,7 +370,7 @@ void app_main(void) {
     .scl_io_num = CONFIG_PIN_IIC_1_SCL,         // select SCL GPIO specific to your project
     .sda_pullup_en = GPIO_PULLUP_DISABLE,
     .scl_pullup_en = GPIO_PULLUP_DISABLE,
-    .master = {.clk_speed = 420000/*CONFIG_IIC_1_CLK_FREQ_HZ*/},  // select frequency specific to your project
+    .master = {.clk_speed = 250000/*CONFIG_IIC_1_CLK_FREQ_HZ*/},  // select frequency specific to your project
     .clk_flags = 0,                          // optional; you can use I2C_SCLK_SRC_FLAG_* flags to choose i2c source clock here
   };
 
