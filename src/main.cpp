@@ -30,9 +30,7 @@
 #include "InputButton.hpp"
 #include "Task.h"
 // -- WIP includes
-#include "MessageBuilderForTm1637.hpp"
-#include "SevenSegmentsTypes.hpp"
-#include "Tm1637IicBridgeEsp32.hpp"
+#include "Tm1637Esp32.hpp"
 
 //====================================================================
 // GPIO pins affectation from configuration
@@ -151,7 +149,7 @@ uint8_t demo_pool[] = {
 uint8_t demo_length = 96 ;
 uint8_t demo_cursor = 0 ;
 bool demo_is_ready = false ;
-SevenSegmentsRegisters displayRegisters ;
+Tm1637Registers displayRegisters ;
 
 // Demo : ascii
 //=====================================================================
