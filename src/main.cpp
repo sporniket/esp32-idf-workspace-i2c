@@ -32,6 +32,7 @@
 // -- WIP includes
 #include "MessageBuilderForTm1637.hpp"
 #include "SevenSegmentsTypes.hpp"
+#include "Tm1637IicBridgeEsp32.hpp"
 
 //====================================================================
 // GPIO pins affectation from configuration
@@ -190,6 +191,7 @@ class DisplayUpdaterTask : public Task {
 private:
   uint8_t * const buffer = (uint8_t *)malloc(32);
   MessageBuilderForTm1637 messageBuilder = MessageBuilderForTm1637();
+  Tm1637IicBridgeEsp32 iicBridge = Tm1637IicBridgeEsp32() ;
 
 public:
   virtual ~DisplayUpdaterTask() {
@@ -223,33 +225,8 @@ public:
         displayRegisters.data.digits[1] = demo_pool[(demo_cursor+1)%demo_length];
         displayRegisters.data.digits[2] = demo_pool[(demo_cursor+2)%demo_length];
         displayRegisters.data.digits[3] = demo_pool[(demo_cursor+3)%demo_length];
-        messageBuilder.buildMessageForAddressAndData(addressAndData, displayRegisters.data.digits, displayRegisters.data.size);
 
-        // -- sequence of commands
-        i2c_cmd_handle_t cmd ;
-        cmd = i2c_cmd_link_create();
-        i2c_master_start(cmd) ;
-        i2c_master_write(cmd,commandData,command[0],ack_mode);
-        i2c_master_stop(cmd);
-        ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
-        i2c_cmd_link_delete(cmd);
-        ESP_LOGI(TAG_MAIN, "done i2c command 1");
-
-        cmd = i2c_cmd_link_create();
-        i2c_master_start(cmd) ;
-        i2c_master_write(cmd,addressAndDataData,addressAndData[0],ack_mode);
-        i2c_master_stop(cmd);
-        ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
-        i2c_cmd_link_delete(cmd);
-        ESP_LOGI(TAG_MAIN, "done i2c command 2");
-
-        cmd = i2c_cmd_link_create();
-        i2c_master_start(cmd) ;
-        i2c_master_write(cmd,displayControlData,displayControl[0],ack_mode);
-        i2c_master_stop(cmd);
-        ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_master_port, cmd,10));
-        i2c_cmd_link_delete(cmd);
-        ESP_LOGI(TAG_MAIN, "done i2c command 3");
+        iicBridge.upload(&displayRegisters, i2c_master_port);
 
         demo_cursor = (demo_cursor+1)%demo_length ;
       }
