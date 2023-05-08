@@ -1,0 +1,3 @@
+[submodule "lib/SevenSegments"]
+	path = lib/SevenSegments
+	url = https://github.com/sporniket/SevenSegments.git
