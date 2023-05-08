@@ -189,32 +189,16 @@ void trySetDataMode(int i2c_port) {
 // Sample task : display updater
 class DisplayUpdaterTask : public Task {
 private:
-  uint8_t * const buffer = (uint8_t *)malloc(32);
-  MessageBuilderForTm1637 messageBuilder = MessageBuilderForTm1637();
   Tm1637IicBridgeEsp32 iicBridge = Tm1637IicBridgeEsp32() ;
 
 public:
-  virtual ~DisplayUpdaterTask() {
-    if (nullptr != buffer) {
-      free(buffer);
-    }
-  }
+  virtual ~DisplayUpdaterTask() {}
+
   void run(void *data) {
     const TickType_t SLEEP_TIME = 333 / portTICK_PERIOD_MS; // 3.33 Hz
-    //prepare constant message
-    uint8_t *const command = buffer ;
-    messageBuilder.buildMessageForCommandWriteToDisplay(command) ;
-    uint8_t *const commandData = command + 1;
-    uint8_t *const displayControl = commandData + command[0] ;
-    messageBuilder.buildMessageForControlBrightness(displayControl, Tm1637OpcodeParts::DISPLAY_AND_CONTROL_BRIGHTNESS_7) ;
-    uint8_t *const displayControlData = displayControl + 1;
-    uint8_t *const addressAndData = displayControlData + displayControl[0] ;
-    uint8_t *const addressAndDataData = addressAndData + 1 ;
-    //uint8_t displayData[4] ;
 
     //i2c port to use
-    int i2c_master_port = 0;
-    bool ack_mode = true ;
+    int i2c_port = 0;
 
     while (true) {
       if (demo_is_ready) {
@@ -226,7 +210,7 @@ public:
         displayRegisters.data.digits[2] = demo_pool[(demo_cursor+2)%demo_length];
         displayRegisters.data.digits[3] = demo_pool[(demo_cursor+3)%demo_length];
 
-        iicBridge.upload(&displayRegisters, i2c_master_port);
+        iicBridge.upload(&displayRegisters, i2c_port);
 
         demo_cursor = (demo_cursor+1)%demo_length ;
       }
