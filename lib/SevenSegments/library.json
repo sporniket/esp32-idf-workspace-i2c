@@ -1,7 +1,7 @@
 {
     "name": "SevenSegments-by-sporniket",
     "version": "0.0.1",
-    "description": "C++ library for PlatformIO, a model to interface with a display made of 7-segment digits.",
+    "description": "C++ library for PlatformIO, an abstract model to interface with a display made of 7-segment digits.",
     "keywords": "Seven segments, IIC, I2C",
     "repository": {
         "type": "git",
