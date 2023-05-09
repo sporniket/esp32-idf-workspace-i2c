@@ -4,3 +4,6 @@
 [submodule "lib/Tm1637"]
 	path = lib/Tm1637
 	url = https://github.com/sporniket/Tm1637.git
+[submodule "lib/Tm1637Esp32"]
+	path = lib/Tm1637Esp32
+	url = https://github.com/sporniket/Tm1637Esp32.git
