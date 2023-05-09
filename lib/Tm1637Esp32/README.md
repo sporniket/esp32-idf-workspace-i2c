@@ -1,5 +1,5 @@
 # Tm1637 driver for Esp32/IDF
-C++ library for PlatformIO, an implementation to interface with the 7-segment controller TM1637, with ESP32 specifics..
+C++ library for PlatformIO, an implementation to interface with the 7-segment controller TM1637, using an I2C link of the ESP32.
 
 [![PlatformIO Registry](https://badges.registry.platformio.org/packages/sporniket/library/Tm1637Esp32-by-sporniket.svg)](https://registry.platformio.org/libraries/sporniket/Tm1637Esp32-by-sporniket)
 
