@@ -1,3 +1,6 @@
 [submodule "lib/SevenSegments"]
 	path = lib/SevenSegments
 	url = https://github.com/sporniket/SevenSegments.git
+[submodule "lib/Tm1637"]
+	path = lib/Tm1637
+	url = https://github.com/sporniket/Tm1637.git
