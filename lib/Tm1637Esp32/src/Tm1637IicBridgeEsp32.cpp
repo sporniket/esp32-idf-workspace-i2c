@@ -28,9 +28,9 @@ Tm1637IicBridgeEsp32::~Tm1637IicBridgeEsp32() {
   }
 }
 
-IicStatus<esp_err_t>
+BridgeStatus<esp_err_t>
 Tm1637IicBridgeEsp32::upload(SevenSegmentsRegisters *registers,
-                             IicDeviceId recipient) {
+                             BridgeId recipient) {
   bool ack_mode = true;
 
   messageBuilder.buildMessageForAddressAndData(
@@ -46,7 +46,7 @@ Tm1637IicBridgeEsp32::upload(SevenSegmentsRegisters *registers,
   }
 
   // -- sequence of commands
-  IicStatus<esp_err_t> result;
+  BridgeStatus<esp_err_t> result;
   result = send(commandData, command[0], recipient, ack_mode);
   if (!result.ok) {
     return result;
@@ -59,9 +59,9 @@ Tm1637IicBridgeEsp32::upload(SevenSegmentsRegisters *registers,
   return result;
 }
 
-IicStatus<esp_err_t>
+BridgeStatus<esp_err_t>
 Tm1637IicBridgeEsp32::send(const uint8_t *const messageData,
-                           uint8_t messageSize, IicDeviceId recipient,
+                           uint8_t messageSize, BridgeId recipient,
                            bool ackMode) {
   i2c_cmd_handle_t cmd = i2c_cmd_link_create();
   i2c_master_start(cmd);
@@ -69,6 +69,6 @@ Tm1637IicBridgeEsp32::send(const uint8_t *const messageData,
   i2c_master_stop(cmd);
   esp_err_t status = i2c_master_cmd_begin(recipient, cmd, 10);
   i2c_cmd_link_delete(cmd);
-  IicStatus<esp_err_t> result = {.ok = (ESP_OK == status), .errorCode = status};
+  BridgeStatus<esp_err_t> result = {.ok = (ESP_OK == status), .errorCode = status};
   return result;
 }

@@ -4,7 +4,7 @@
     "description": "C++ library for PlatformIO, an implementation to interface with the 7-segment controller TM1637, with ESP32 specifics.",
     "keywords": "IIC, I2C, esp32, espressif32, espidf, tm1637",
     "dependencies": {
-        "sporniket/Tm1637-by-sporniket":"~0.0.1"
+        "sporniket/Tm1637-by-sporniket":"~0.0.2"
     },
     "repository": {
         "type": "git",

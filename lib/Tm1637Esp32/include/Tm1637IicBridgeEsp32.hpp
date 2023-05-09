@@ -57,19 +57,19 @@ private:
   uint8_t *const addressAndDataData = addressAndData + 1;
 
   /** @brief Utility to send a write only message through I2C.*/
-  IicStatus<esp_err_t> send(const uint8_t *const messageData,
-                            uint8_t messageSize, IicDeviceId recipient,
+  BridgeStatus<esp_err_t> send(const uint8_t *const messageData,
+                            uint8_t messageSize, BridgeId recipient,
                             bool ackMode);
 
 public:
   Tm1637IicBridgeEsp32();
   virtual ~Tm1637IicBridgeEsp32();
-  IicStatus<esp_err_t> upload(SevenSegmentsRegisters *registers,
-                              IicDeviceId recipient);
-  IicStatus<esp_err_t> scanKey(Tm1637Registers *registers,
-                                IicDeviceId recipient){
+  BridgeStatus<esp_err_t> upload(SevenSegmentsRegisters *registers,
+                              BridgeId recipient);
+  BridgeStatus<esp_err_t> scanKey(Tm1637Registers *registers,
+                                BridgeId recipient){
       // NOT IMPLEMENTED YET
-      IicStatus<esp_err_t> result = {
+      BridgeStatus<esp_err_t> result = {
         .ok = false,
         .errorCode = ESP_ERR_NOT_SUPPORTED
       } ;
