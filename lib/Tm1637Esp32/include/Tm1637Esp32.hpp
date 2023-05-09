@@ -24,7 +24,6 @@
 // esp32 includes
 
 // project includes
-#include "Tm1637Types.hpp"
 #include "Tm1637IicBridgeEsp32.hpp"
 
 #endif

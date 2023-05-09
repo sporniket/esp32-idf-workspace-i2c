@@ -15,8 +15,17 @@
 // You should have received a copy of the GNU General Public License along 
 // with 'Tm1637Esp32-by-sporniket'. If not, see <https://www.gnu.org/licenses/>. 
 
-// header include
+#ifndef TM1637_HPP
+#define TM1637_HPP
+
+// standard includes
+#include <cstdint>
+
+// esp32 includes
+
+// project includes
 #include "Tm1637Types.hpp"
+#include "Tm1637IicBridge.hpp"
+#include "MessageBuilderForTm1637.hpp"
 
-// write code here...
-
+#endif
