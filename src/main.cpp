@@ -106,7 +106,7 @@ uint8_t demo_pool[] = {
   /* ASCII  86 V   */ 0x1c,
   /* ASCII  87 W   */ 0x3e,
   /* ASCII  88 X   */ 0x76,
-  /* ASCII  89 Y   */ 0x72,
+  /* ASCII  89 Y   */ 0x6e,
   /* ASCII  90 Z   */ 0x5b,
   /* ASCII  91 [   */ 0x39,
   /* ASCII  92 \   */ 0x64,
@@ -138,7 +138,7 @@ uint8_t demo_pool[] = {
   /* ASCII 118 v   */ 0x1c,
   /* ASCII 119 w   */ 0x3e,
   /* ASCII 120 x   */ 0x76,
-  /* ASCII 121 y   */ 0x72,
+  /* ASCII 121 y   */ 0x6e,
   /* ASCII 122 z   */ 0x5b,
   /* ASCII 123 {   */ 0x46,
   /* ASCII 124 |   */ 0x30,
@@ -171,7 +171,9 @@ void logTxDataMode(i2c_trans_mode_t mode) {
 void checkTxDataMode(int i2c_port) {
   i2c_trans_mode_t txmode, rxmode ;
 
-  i2c_get_data_mode(i2c_port, &txmode, &rxmode) ;
+  i2c_port_t port = static_cast<i2c_port_t>(i2c_port) ;
+
+  i2c_get_data_mode(port, &txmode, &rxmode) ;
   logTxDataMode(txmode) ;
 }
 
@@ -179,7 +181,7 @@ void checkTxDataMode(int i2c_port) {
 void trySetDataMode(int i2c_port) {
   checkTxDataMode(i2c_port);
 
-  ESP_ERROR_CHECK(i2c_set_data_mode(i2c_port, I2C_DATA_MODE_LSB_FIRST, I2C_DATA_MODE_LSB_FIRST));
+  ESP_ERROR_CHECK(i2c_set_data_mode((i2c_port_t)i2c_port, I2C_DATA_MODE_LSB_FIRST, I2C_DATA_MODE_LSB_FIRST));
 
   checkTxDataMode(i2c_port);
 }
@@ -335,11 +337,13 @@ void app_main(void) {
     .clk_flags = 0,                          // optional; you can use I2C_SCLK_SRC_FLAG_* flags to choose i2c source clock here
   };
 
-  i2c_param_config(i2c_master_port, &conf);
+  i2c_port_t port = static_cast<i2c_port_t>(i2c_master_port) ;
+
+  i2c_param_config(port, &conf);
 
   trySetDataMode(i2c_master_port) ;
 
-  ESP_ERROR_CHECK(i2c_driver_install(i2c_master_port, conf.mode, 0, 0, 0));
+  ESP_ERROR_CHECK(i2c_driver_install(port, conf.mode, 0, 0, 0));
 
   demo_is_ready = true ;
 
